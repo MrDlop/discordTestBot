@@ -1,33 +1,55 @@
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 from config import settings_ds
 
-bot = commands.Bot(command_prefix=settings_ds['prefix'])
-a = dict()
+intent = disnake.Intents.all()
+
+bot = commands.Bot(command_prefix=settings_ds['prefix'], intents=intent)
 
 
 @bot.command()
 async def test(ctx):
+    """
+    Test text message
+    :param ctx:
+    :return:
+    """
     await ctx.send(f'Hello, {ctx.message.author.mention}!')
 
 
 @bot.command()
 async def afk(ctx, time: int):
+    """
+    AFK personal settings
+    :param ctx:
+    :param time: time - AFK
+    :return:
+    """
     await ctx.send(f'Hello, {ctx.message.author.mention}! Ваше время до AFK {time} минут')
 
 
 @bot.command()
-async def nc(ctx, name):
-    a = await ctx.guild.create_voice_channel(str(name))
-    print(a.id)
+async def create_channel(ctx, name):
+    """
+    Create user channel
+    :param ctx:
+    :param name: name channel
+    :return:
+    """
 
-
-@bot.command()
-async def dc(ctx, name):
-    channel = discord.utils.get(ctx.guild.channels, name=name)
-
-    if channel:
+    channel = await ctx.guild.create_voice_channel(name)
+    try:
+        await ctx.message.author.move_to(channel)
+    except disnake.DiscordException:
+        await ctx.send(f'Move to some voice channel')
         await channel.delete()
+        return
+
+    def check(a, b, c):
+        return len(channel.members) == 0
+
+    await bot.wait_for('voice_state_update', check=check)
+    await channel.delete()
 
 
 bot.run(settings_ds['token'])
