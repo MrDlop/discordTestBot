@@ -6,36 +6,25 @@ from config import settings_ds
 
 intent = disnake.Intents.all()
 bot = commands.Bot(command_prefix=settings_ds['prefix'], intents=intent)
-
+a = dict()
 
 @bot.command()
 async def test(ctx):
     """
     Test text message
-    :param ctx:
-    :return:
     """
     await ctx.send(f'Hello, {ctx.message.author.mention}!')
 
 
 @bot.command()
 async def afk(ctx, time: int):
-    """
-    AFK personal settings
-    :param ctx:
-    :param time: time - AFK
-    :return:
-    """
-    await ctx.send(f'Hello, {ctx.message.author.mention}! Ваше время до AFK {time} минут')
+    a[ctx.message.author.id] = time
 
 
 @bot.command()
-async def create_channel(ctx, name):
+async def cc(ctx, name):
     """
     Create user channel
-    :param ctx:
-    :param name: name channel
-    :return:
     """
     channel = await ctx.guild.create_voice_channel(name)
     if not (ctx.message.author.voice is None):
@@ -52,6 +41,15 @@ async def create_channel(ctx, name):
 
     await bot.wait_for('voice_state_update', check=check)
     await channel.delete()
+
+
+@bot.event
+async def on_presence_update(before, after):
+    channel = before.guild.get_channel(1010499309386608680)
+    if disnake.Status.idle == after.status:
+        await asyncio.sleep(a[before.id])
+        if disnake.Status.idle == after.status:
+            await before.move_to(channel, reason=None)
 
 
 bot.run(settings_ds['token'])
