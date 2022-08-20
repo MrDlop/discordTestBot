@@ -1,9 +1,10 @@
+import asyncio
+
 import disnake
 from disnake.ext import commands
 from config import settings_ds
 
 intent = disnake.Intents.all()
-
 bot = commands.Bot(command_prefix=settings_ds['prefix'], intents=intent)
 
 
@@ -36,13 +37,14 @@ async def create_channel(ctx, name):
     :param name: name channel
     :return:
     """
-
     channel = await ctx.guild.create_voice_channel(name)
-    try:
+    if not (ctx.message.author.voice is None):
         await ctx.message.author.move_to(channel)
-    except disnake.DiscordException:
+    else:
         await ctx.send(f'Move to some voice channel')
-        await channel.delete()
+        await asyncio.sleep(10)
+        if len(channel.members) == 0:
+            await channel.delete()
         return
 
     def check(a, b, c):
